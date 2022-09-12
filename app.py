@@ -1,71 +1,55 @@
-import re
+from flask import Flask, render_template, url_for, redirect, request, send_from_directory
+# from flask_wtf import FlaskForm
+# from wtforms import FileField, SubmitField
+from werkzeug.utils import secure_filename
+import os
+# from wtforms.validators import InputRequired
 
-from flask import Flask, jsonify, request
-from flasgger import Swagger, LazyString, LazyJSONEncoder, swag_from
+from clean_func import cleaned_and_stemmed
 
-app = Flask(__name__)
+UPLOAD_FOLDER = os.path.dirname(os.path.abspath(__file__)) + '/uploads/'
+DOWNLOAD_FOLDER = os.path.dirname(os.path.abspath(__file__)) + '/downloads/'
+ALLOWED_EXTENSIONS = {'csv'}
 
-app.json_encoder = LazyJSONEncoder
-swagger_template = dict(
-    info = {
-        'title': LazyString(lambda: 'API Documentation for Data Processing and Modelling'),
-        'version': LazyString(lambda: '1.0.0'),
-        'description': LazyString(lambda: 'Dokumentasi API')
-    },
-    host = LazyString(lambda: request.host)
-)
+app = Flask(__name__, static_url_path="/static")
+DIR_PATH = os.path.dirname(os.path.realpath(__file__))
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+app.config['DOWNLOAD_FOLDER'] = DOWNLOAD_FOLDER
+# limit upload size upto 8mb
+app.config['MAX_CONTENT_LENGTH'] = 8 * 1024 * 1024
 
-swagger_config = {
-    "headers": [],
-    "specs": [
-        {
-            "endpoint": 'docs',
-            "route": '/docs.json'
-        }
-    ],
-    "static_url_path": '/flasgger_static',
-    "swagger_ui": True,
-    "specs_route": '/docs/'
-}
-swagger = Swagger(app, template=swagger_template, config=swagger_config)
 
-@swag_from("docs/hello_world.yml", methods=['GET'])
-@app.route('/', methods=['GET'])
-def hello_world():
-    json_response = {
-        'status_code': 200,
-        'description': "Halo semua",
-        'data': "Hello world"
-    }
-    
-    response_data = jsonify(json_response)
-    return response_data
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
-@swag_from("docs/text_processing.yml", methods=['POST'])
-@app.route('/text-processing', methods=['POST'])
-def text_processing():
-    
-    text = request.form.get('text')
-    
-    json_response = {
-        'status_code': 200,
-        'description': "Teks yang sudah diproses",
-        'data': re.sub(r'[^a-zA-Z0-9]', ' ', text)
-    }
-    
-    response_data = jsonify(json_response)
-    return response_data
 
-@app.route('/text-clean', methods=['GET'])
-def text_clean():
-    json_response = {
-        'status_code': 200,
-        'description': "Original teks",
-        'data': re.sub(r'[^a-zA-Z0-9]', ' ', "Halo, apa kabar?")
-    }
-    
-    response_data = jsonify(json_response)
-    return response_data
+@app.route('/', methods=['GET', 'POST'])
+def index():
+    if request.method == 'POST':
+        if 'file' not in request.files:
+            print('No file attached in request')
+            return redirect(request.url)
+        file = request.files['file']
+        if file.filename == '':
+            print('No file selected')
+            return redirect(request.url)
+        if file and allowed_file(file.filename):
+            filename = secure_filename(file.filename)
+            file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+            
+            process_file(os.path.join(app.config['UPLOAD_FOLDER'], filename), filename)
+            return redirect(url_for('uploaded_file', filename=filename))
+    return render_template('text_app.html')
+
+def process_file(path, filename):
+    cleaned_and_stemmed(path, filename)
+
+
+@app.route('/uploads/<filename>', methods = ["GET"])
+def uploaded_file(filename):
+    return send_from_directory(app.config['DOWNLOAD_FOLDER'], filename, as_attachment=True)
+
 
 if __name__ == '__main__':
-    app.run()
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host='0.0.0.0', port=port)
