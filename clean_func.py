@@ -86,6 +86,14 @@ def remove_punct(text):
     text  = " ".join([char for char in text if char not in string.punctuation])
     return text
 
+def remove_punct_regex(text):
+    remove = re.sub(r'[^\w\s]', '', text)
+    return remove
+
+def remove_punct_regex_csv(text):
+    pass
+    
+
 def cleaned_and_stemmed(path, filename):
     # Store data to variable, and get only the first column
     tweet_df = pd.read_csv(f'{path}', encoding = "ISO-8859-1")
@@ -110,4 +118,6 @@ def cleaned_and_stemmed(path, filename):
     df = df.drop(columns=['remove_user', 'remove_http'])
     df.loc[df.astype(str).drop_duplicates().index]
 
-    df.to_csv('downloads/output.csv',encoding='utf8', index=False)
+    df.to_csv(f'downloads/{filename}',encoding='utf8', index=False)
+    
+    

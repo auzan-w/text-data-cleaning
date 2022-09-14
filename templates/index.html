@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title></title>
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='home.css') }}"
+    />
+  </head>
+  <body>
+    <h3>Choose text format to clean</h3>
+    <form action="/upload" method="get">
+      <button name="subject" type="submit" value="upload">Upload CSV file</button>
+    </form>
+    <form action="/input" method="get">
+      <button name="subject" type="submit" value="input">Input text</button>
+    </form>
+  </body>
+</html>
