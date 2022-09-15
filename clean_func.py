@@ -24,7 +24,7 @@ def remove_pattern(input_txt, pattern):
         input_txt = re.sub(i, '', input_txt)
     return input_txt
 
-def remove(tweet):
+def clean_text(tweet):
     # remove stock market tickers like $GE
     tweet = re.sub(r'\$\w*', '', tweet)
     # remove old style retweet text "RT"
@@ -41,32 +41,13 @@ def remove(tweet):
     # remove character 'x'
     tweet = re.sub(r'\b[xX]\w+','',tweet)
     tweet = re.sub(r'\b[xX]','',tweet)
+    
+    tweet = re.sub(r'[^\w\s]', '', tweet)
     
     return tweet
 
-def clean_tweets(tweet):
-    # remove stock market tickers like $GE
-    tweet = re.sub(r'\$\w*', '', tweet)
- 
-    # remove old style retweet text "RT"
-    tweet = re.sub(r'^RT[\s]+', '', tweet)
- 
-    # remove hyperlinks
-    tweet = re.sub(r'https?:\/\/.*[\r\n]*', '', tweet)
-    
-    # remove hashtags
-    # only removing the hash # sign from the word
-    tweet = re.sub(r'#', '', tweet)
-    
-    #remove coma
-    tweet = re.sub(r',','',tweet)
-    
-    #remove angka
-    tweet = re.sub('[0-9]+', '', tweet)
-
-    # remove character 'x'
-    tweet = re.sub(r'\b[xX]\w+','',tweet)
-    tweet = re.sub(r'\b[xX]','',tweet)
+def clean_and_stem_text(tweet):
+    tweet = clean_text(tweet)
  
     # tokenize tweets
     tokenizer = TweetTokenizer(preserve_case=False, strip_handles=True, reduce_len=True)
@@ -80,42 +61,42 @@ def clean_tweets(tweet):
             #tweets_clean.append(word)
             stem_word = stemmer.stem(word) # stemming word
             tweets_clean.append(stem_word)
+    tweets_clean = ' '.join(tweets_clean)
     return tweets_clean
 
-def remove_punct(text):
-    text  = " ".join([char for char in text if char not in string.punctuation])
-    return text
-
-def remove_punct_regex(text):
-    remove = re.sub(r'[^\w\s]', '', text)
-    return remove
-
-def remove_punct_regex_csv(text):
-    pass
+def clean_csv(path, filename):
+    df = pd.read_csv(f'{path}', encoding = "ISO-8859-1")
+    df = pd.DataFrame(df.iloc[:, 0])
     
+        # Function to remove username (starts with '@')
+    df['remove_user'] = np.vectorize(remove_pattern)(df, "@[\w]*")
 
-def cleaned_and_stemmed(path, filename):
+    # Remove numbers, symbols, links, and duplicates data)
+    df['remove_symbols'] = df['remove_user'].apply(lambda x: clean_text(x))
+    df.sort_values("remove_symbols", inplace = True)
+    df.drop_duplicates(subset ="remove_symbols", keep = 'first', inplace = True)
+    
+    df.to_csv(f'downloads/{filename}',encoding='utf8', index=False)
+
+def clean_and_stem_csv(path, filename):
     # Store data to variable, and get only the first column
-    tweet_df = pd.read_csv(f'{path}', encoding = "ISO-8859-1")
-    df = pd.DataFrame(tweet_df.iloc[:, 0])
+    df = pd.read_csv(f'{path}', encoding = "ISO-8859-1")
+    df = pd.DataFrame(df.iloc[:, 0])
 
     # Function to remove username (starts with '@')
     df['remove_user'] = np.vectorize(remove_pattern)(df, "@[\w]*")
 
     # Function to remove numbers, symbols, etc.)
-    df['remove_http'] = df['remove_user'].apply(lambda x: remove(x))
-    df.sort_values("remove_http", inplace = True)
-    df.drop_duplicates(subset ="remove_http", keep = 'first', inplace = True)
+    df['remove_symbols'] = df['remove_user'].apply(lambda x: clean_and_stem_text(x))
+    df.sort_values("remove_symbols", inplace = True)
+    df.drop_duplicates(subset ="remove_symbols", keep = 'first', inplace = True)
 
     # Remove links, save to new column
-    df['tweet_clean'] = df['remove_http'].apply(lambda x: clean_tweets(x))
-
-    # Remove punctuations, save to new column
-    df['Tweet_processed'] = df['tweet_clean'].apply(lambda x: remove_punct(x))
+    df['tweet_clean'] = df['remove_symbols'].apply(lambda x: clean_and_stem_text(x))
 
     # Remove duplicates data
     # df.drop_duplicates(keep = 'first', inplace = True)
-    df = df.drop(columns=['remove_user', 'remove_http'])
+    df = df.drop(columns=['remove_user', 'remove_symbols'])
     df.loc[df.astype(str).drop_duplicates().index]
 
     df.to_csv(f'downloads/{filename}',encoding='utf8', index=False)
