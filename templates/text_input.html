@@ -1,21 +1,28 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
+  <head>
+    <meta charset="UTF-8" />
     <title>Text Cleaner</title>
     <link
       rel="stylesheet"
       href="{{ url_for('input_text', filename='filename') }}"
     />
-</head>
-<body>
-<div align="center">
-    <form method="POST">
-        <div><label>Input your text: <input type="text" name="text_input"></label></div>
-        <input type="radio" value="1" name="option">Remove symbols
-        <input type="radio" value="2" name="option">Remove symbols, stopwords, and stem words
-        <input type="submit" value="Submit">
-    </form>
-</div>
-</body>
+  </head>
+  <body>
+    <div align="center">
+      <form method="POST">
+        <div><label>Input your text:</label></div>
+        <div>
+          <textarea type="text" name="text_input" rows="4" cols="50"></textarea>
+        </div>
+
+        <div>
+          <input type="radio" value="1" name="option" />Remove symbols
+          <input type="radio" value="2" name="option" />Remove symbols,
+          stopwords, and stem words
+          <input type="submit" value="Submit" />
+        </div>
+      </form>
+    </div>
+  </body>
 </html>

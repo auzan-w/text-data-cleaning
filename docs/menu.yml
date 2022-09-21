@@ -1,7 +1,7 @@
 tags:
-  - name: Hello World
+  - name: Main Menu
 get:
-  description: Menyapa Hello World
+  description: Options to choose input format
 responses:
     '200':
       description: Successful response
