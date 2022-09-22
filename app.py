@@ -57,24 +57,28 @@ def input_text():
     if request.method == 'POST':
         text_input = request.form.get('text_input')
         option = request.form.get('option')
-        text_cleaned = clean_text(text_input)
-        
-        # if option == 1 or option == None:
-        #     text_cleaned = clean_text(text_input)
-            
-        # if option == 2:
-        #     text_cleaned = clean_and_stem_text(text_input)
-        
-        # Save to db
-        database_txt(text_input, text_cleaned)
-        
-        return '''
-                  <h3>Your text: </h3>
-                  <p>{}</p>
-                  <h3>Cleaned text: </h3>
-                  <p>{}</p>
+        print(type(option))
+        if option == '2':
+            text_cleaned = clean_and_stem_text(text_input)
+            database_txt(text_input, text_cleaned)
+            return '''
+                <h3>Your text: </h3>
+                <p>{}</p>
+                <h3>Cleaned text: </h3>
+                <p>{}</p>
                 '''.format(text_input, text_cleaned)
-       
+        else:
+            text_cleaned = clean_text(text_input)
+            database_txt(text_input, text_cleaned)
+            print(option)
+            
+            return '''
+                <h3>Your text: </h3>
+                <p>{}</p>
+                <h3>Cleaned text: </h3>
+                <p>{}</p>
+                '''.format(text_input, text_cleaned)
+        
     return render_template('text_input.html')
 
 @app.route('/api/input', methods=['POST'])
