@@ -14,6 +14,8 @@ stemmer = factory.create_stemmer()
 #tokenize
 from nltk.tokenize import TweetTokenizer
 
+slang_dict = pd.read_csv('new_kamusalay.csv', encoding = "ISO-8859-1")
+
 def load_data():
     data = pd.read_csv('data_test.csv', encoding = "ISO-8859-1")#ubah nama file sesuai dengan nama file
     return data
@@ -23,6 +25,19 @@ def remove_pattern(input_txt, pattern):
     for i in r:
         input_txt = re.sub(i, '', input_txt)
     return input_txt
+
+# def get_slang_index(slang):
+#   return list(slang_dict['anakjakartaasikasik']).index(slang)
+
+# def write_list(a_list):
+#   with open("tweets.json", "w") as fp:
+#         json.dump(a_list, fp)
+
+# for tweet in alnum_only_tweets:
+#   for word in tweet:
+#     if word in list(slang_dict['anakjakartaasikasik']):
+#       slang_index = get_slang_index(word)
+#       tweet[tweet.index(word)] = slang_dict['anak jakarta asyik asyik'][slang_index]
 
 def clean_text(tweet):
     # remove stock market tickers like $GE
