@@ -14,8 +14,6 @@ stemmer = factory.create_stemmer()
 #tokenize
 from nltk.tokenize import TweetTokenizer
 
-slang_dict = pd.read_csv('new_kamusalay.csv', encoding = "ISO-8859-1")
-
 def load_data():
     data = pd.read_csv('data_test.csv', encoding = "ISO-8859-1")#ubah nama file sesuai dengan nama file
     return data
